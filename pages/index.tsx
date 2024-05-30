@@ -10,6 +10,8 @@ import toast from "react-hot-toast";
 
 import { verifyGoogleTokenQuery } from "@/graphql/query/user";
 import { graphqlClient } from "@/clients/api";
+import { useCurrentUser } from "@/hooks/user";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface TwitterSideBarButton {
   title: string;
@@ -50,21 +52,25 @@ const sideBarMenuItems: TwitterSideBarButton[] = [
   },
 ];
 export default function Home() {
+  const {user} = useCurrentUser()
+  const queryClient = useQueryClient()
+  console.log(user)
  const handleLoginWithGoogle = useCallback(async(cred:CredentialResponse) => {
   const googleToken = cred.credential;
   if(!googleToken)  return toast.error(`google token not found`);
-  const {verifyGoogleToken} = await graphqlClient.request(verifyGoogleTokenQuery ,{token: googleToken})
+  const {verifyGoogleToken} = await graphqlClient.request(verifyGoogleTokenQuery ,{token: googleToken});
 
 toast.success("verified success")
 console.log(verifyGoogleToken);
 if(verifyGoogleToken)
   window.localStorage.setItem("__twitter_token",verifyGoogleToken)
+await queryClient.invalidateQueries(['curent-user'])
  },
-  []);
+  [queryClient]);
   return (
     <div>
       <div className="grid grid-cols-12 h-screen w-screen px-56">
-        <div className="col-span-4 pt-1 ml-28  ">
+        <div className="col-span-4 pt-1 ml-28 relative  ">
           <div className="text-2xl h-fit w-fit  hover:bg-gray-700 rounded-full p-4 cursor-pointer transition-all ">
             <FaSquareXTwitter />
           </div>
@@ -86,6 +92,13 @@ if(verifyGoogleToken)
               </button>
             </div>
           </div>
+         {user &&  <div className="absolute bottom-5 flex gap-2 items-center bg-slate-800 px-3 py-2 rounded-full">
+        { user && user.prifileImageUrl && <Image className ="rounded-full" src ={user?.prifileImageUrl} alt ="user" height={50} width={50}/>}
+        <div>
+        <h3 className="text-xl">{user.firstName} {user.lastName}</h3>
+      
+          </div>
+        </div>}
         </div>
         <div className="col-span-5  border-r-[1px] border-l-[1px] border-gray-600 h-scren overflow-scroll  no-scrollbar">
           <FeedCard />
@@ -94,12 +107,12 @@ if(verifyGoogleToken)
           <FeedCard />
           <FeedCard />
         </div>
-        <div className="col-span-3 p-5 ">
-          <div className="p-5 bg-slate-700 rounded-lg">
+       <div className="col-span-3 p-5 ">
+       { !user &&<div className="p-5 bg-slate-700 rounded-lg">
             <h1 className="my-2 text-xl"> New to twitter ?</h1>
             <GoogleLogin  onSuccess={handleLoginWithGoogle} />
           
-          </div>
+          </div>}
         </div>
       </div>
     </div>
