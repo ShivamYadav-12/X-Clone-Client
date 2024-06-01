@@ -1,5 +1,6 @@
 import { Tweet } from "@/gql/graphql";
 import Image from "next/image";
+import Link from "next/link";
 import React from "react";
 import { AiOutlineHeart, AiOutlineRetweet } from "react-icons/ai";
 import { BiMessageRounded, BiUpload } from "react-icons/bi";
@@ -16,15 +17,16 @@ const FeedCard: React.FC<FeedCardProps> = (props) => {
     <div className="border border-r-0 border-l-0  border-b-0 border-gray-600 p-5 hover:bg-slate-900 cursor-pointer transition-all">
       <div className="grid grid-cols-12 gap-3">
         <div className=" col-span-1">
-         { data.author?.prifileImageUrl && <Image
-            src={data.author.prifileImageUrl}
+         { data.author?.profileImageUrl && <Image
+            src={data.author.profileImageUrl}
             alt="user profile"
             width={50}
             height={50}
+            className="rounded-full"
           /> }
         </div>
         <div className=" col-span-11">
-          <h5>{data.author?.firstName} {data.author?.lastName}</h5>
+          <Link href={`/${data.author?.id}`}>{data.author?.firstName} {data.author?.lastName}</Link>
           <p>
             {data.content}
           </p>

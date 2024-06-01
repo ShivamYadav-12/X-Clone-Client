@@ -2,15 +2,19 @@ import Image from "next/image";
 import React, { useCallback, useState } from "react";
 import FeedCard from "@/components/Feedcard";
 import { useCurrentUser } from "@/hooks/user";
-import { useCreateTweet, useGetAllTweets } from "@/hooks/tweet";
+import { useCreateTweet } from "@/hooks/tweet";
 import { Tweet } from "@/gql/graphql";
 import Twitterlayout from "@/components/Layout";
 import { BiImageAlt } from "react-icons/bi";
+import { GetServerSideProps } from "next";
+import { graphqlClient } from "@/clients/api";
+import { getAllTweetsQuery } from "@/graphql/query/tweet";
 
-
-export default function Home() {
+interface HomeProps{
+  tweets : Tweet[]
+}
+export default function Home(props:HomeProps) {
   const {user} = useCurrentUser();
-  const {tweets = [] } = useGetAllTweets();
   const {mutate} = useCreateTweet();
   const [content,setContent] = useState("");
 
@@ -33,10 +37,10 @@ export default function Home() {
       <div className="border border-r-0 border-l-0  border-b-0 border-gray-600 p-5 hover:bg-slate-900 cursor-pointer transition-all">
         <div className="grid grid-cols-12 gap-3">
        <div className=" col-span-1">
-       {user?.prifileImageUrl &&
+       {user?.profileImageUrl &&
           <Image
           className="rounded-full"
-            src={user?.prifileImageUrl}
+            src={user?.profileImageUrl}
             alt="user profile"
             width={50}
             height={50}
@@ -63,9 +67,18 @@ export default function Home() {
 
         </div>
         </div>
-        {tweets?.map((tweet) => tweet ? <FeedCard key={tweet?.id} data ={tweet as Tweet} />: null)}
+        {props.tweets?.map((tweet) => tweet ? <FeedCard key={tweet?.id} data ={tweet as Tweet} />: null)}
 
       </Twitterlayout>
     </div>
   );
+  
+}
+export const getServerSideProps : GetServerSideProps<HomeProps> = async (context)=>{
+  const allTweets = await graphqlClient.request(getAllTweetsQuery);
+  return {
+    props :{
+ tweets : allTweets.getAllTweets as Tweet[],
+    }
+  }
 }

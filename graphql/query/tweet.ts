@@ -12,7 +12,7 @@ getAllTweets {
       firstName
       id
       lastName
-      prifileImageUrl
+      profileImageUrl
     
      
     }
